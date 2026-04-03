@@ -57,5 +57,5 @@ void loop() {
 
   client.end();
 
-  delay(30000);
+  delay(15000);
 }
