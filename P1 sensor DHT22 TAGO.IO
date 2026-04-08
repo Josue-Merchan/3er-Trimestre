@@ -8,7 +8,6 @@ const char* password = "merchan2022";
 const char* serverAddress = "https://api.tago.io/data";
 const char* tokenHeader = "43aae551-90e8-495c-b56b-8725fbf3a80f";
 
-WiFiClient wifi;
 HTTPClient client;
 
 #define DHTPIN 5
@@ -33,18 +32,23 @@ void setup() {
 }
 
 void loop() {
-  delay(2000);
+  delay(15000); // 15 segundos
 
   float h = dht.readHumidity();
   float t = dht.readTemperature();
+  float hic = dht.computeHeatIndex(t, h, false); // índice de calor
 
   if (isnan(h) || isnan(t)) {
     Serial.println("Error en DHT");
     return;
   }
 
-  // Crear JSON
-  String postData = "{\"variable\":\"Temperature\",\"value\":" + String(t) + "}";
+  // JSON con 3 variables
+  String postData = "[";
+  postData += "{\"variable\":\"temperatura\",\"value\":" + String(t) + "},";
+  postData += "{\"variable\":\"humedad\",\"value\":" + String(h) + "},";
+  postData += "{\"variable\":\"indice_calor\",\"value\":" + String(hic) + "}";
+  postData += "]";
 
   client.begin(serverAddress);
   client.addHeader("Content-Type", "application/json");
@@ -52,10 +56,8 @@ void loop() {
 
   int statusCode = client.POST(postData);
 
-  Serial.print("Codigo: ");
+  Serial.print("Codigo HTTP: ");
   Serial.println(statusCode);
 
   client.end();
-
-  delay(15000);
 }
