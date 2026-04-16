@@ -1,38 +1,116 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>About us</title>
+  <meta charset="UTF-8">
+  <title>Sensor de Distancia</title>
+
   <style>
     body {
       margin: 0;
-      background: #dadada;
-      font-family: Arial;
-    }
-    .header {
-      background: #0d4f88;
-      text-align: center;
-      padding: 10px;
+      font-family: Arial, sans-serif;
+      background: #0f172a;
       color: white;
+      text-align: center;
     }
-    .content {
-      padding: 10px;
+
+    h1 {
+      margin-top: 30px;
+      font-size: 30px;
     }
-    .header img {
-      height: 80px;
+
+    .card {
+      margin: 50px auto;
+      padding: 30px;
+      width: 300px;
+      background: #1e293b;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+
+    .valor {
+      font-size: 50px;
+      font-weight: bold;
+      color: #22c55e;
+    }
+
+    .alerta {
+      color: red !important;
+    }
+
+    .barra {
+      margin-top: 20px;
+      height: 20px;
+      width: 100%;
+      background: #334155;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progreso {
+      height: 100%;
+      width: 0%;
+      background: #22c55e;
+      transition: 0.5s;
     }
   </style>
 </head>
+
 <body>
 
-  <div class="header">
-    <img src="https://api.tago.io/file/5bec9f3210d91c00322c19b2/acme.png">
-    <h1>About us</h1>
-  </div>
+<h1>Sensor de Distancia</h1>
 
-  <div class="content">
-    <p>Esta página ya funciona desde GitHub Pages.</p>
-    <p>Aquí luego puedes poner datos de tu ESP32 o Tago.</p>
+<div class="card">
+  <div id="valor" class="valor">-- cm</div>
+
+  <div class="barra">
+    <div id="barra" class="progreso"></div>
   </div>
+</div>
+
+<script>
+const TOKEN = "43aae551-90e8-495c-b56b-8725fbf3a80f"; // 
+const VARIABLE = "distancia"; // 
+  
+async function obtenerDatos() {
+  try {
+    const res = await fetch(`https://api.tago.io/data?variable=${VARIABLE}&qty=1`, {
+      headers: {
+        "Device-Token": TOKEN
+      }
+    });
+
+    const data = await res.json();
+
+    if (data.result.length > 0) {
+      const valor = data.result[0].value;
+
+      // Mostrar número
+      const valorHTML = document.getElementById("valor");
+      valorHTML.innerText = valor + " cm";
+
+      // Barra (0 a 100 cm)
+      const porcentaje = Math.min((valor / 100) * 100, 100);
+      document.getElementById("barra").style.width = porcentaje + "%";
+
+      // Alerta visual
+      if (valor < 10) {
+        valorHTML.classList.add("alerta");
+        document.getElementById("barra").style.background = "red";
+      } else {
+        valorHTML.classList.remove("alerta");
+        document.getElementById("barra").style.background = "#22c55e";
+      }
+    }
+
+  } catch (error) {
+    console.log("Error:", error);
+  }
+}
+
+// actualizar cada 2 segundos
+setInterval(obtenerDatos, 2000);
+
+</script>
 
 </body>
 </html>
