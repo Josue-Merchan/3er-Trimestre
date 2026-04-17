@@ -1,0 +1,75 @@
+#include <WiFi.h>
+#include <HTTPClient.h>
+
+const char* ssid = "JOU2022";
+const char* password = "merchan2022";
+
+String token = "43aae551-90e8-495c-b56b-8725fbf3a80f";
+
+#define TRIG 5
+#define ECHO 18
+
+void setup() {
+  Serial.begin(115200);
+
+  pinMode(TRIG, OUTPUT);
+  pinMode(ECHO, INPUT);
+
+  WiFi.begin(ssid, password);
+  Serial.print("Conectando a WiFi");
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("\nConectado!");
+}
+
+float medirDistancia() {
+  digitalWrite(TRIG, LOW);
+  delayMicroseconds(2);
+
+  digitalWrite(TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG, LOW);
+
+  long duracion = pulseIn(ECHO, HIGH, 30000); // timeout
+
+  if (duracion == 0) return -1; // error
+
+  float distancia = duracion * 0.034 / 2;
+  return distancia;
+}
+
+void loop() {
+  if (WiFi.status() == WL_CONNECTED) {
+
+    float distancia = medirDistancia();
+
+    if (distancia < 0) {
+      Serial.println("Error de lectura");
+      delay(2000);
+      return;
+    }
+
+    HTTPClient http;
+    http.begin("https://api.tago.io/data"); // HTTPS (mejor)
+    http.addHeader("Content-Type", "application/json");
+    http.addHeader("Device-Token", token);
+
+    String payload = "{\"variable\":\"distancia\",\"value\":" + String(distancia, 2) + "}";
+
+    int httpResponseCode = http.POST(payload);
+
+    Serial.print("Distancia: ");
+    Serial.println(distancia);
+
+    Serial.print("HTTP: ");
+    Serial.println(httpResponseCode);
+
+    http.end();
+  }
+
+  delay(3000); // más fluido
+}
