@@ -1,116 +1,75 @@
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Sensor de Distancia</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sensor Ultrasonico ESP32</title>
 
   <style>
     body {
-      margin: 0;
       font-family: Arial, sans-serif;
-      background: #0f172a;
-      color: white;
       text-align: center;
+      background-color: #0f172a;
+      color: white;
     }
 
     h1 {
-      margin-top: 30px;
-      font-size: 30px;
+      margin-top: 40px;
+      color: #38bdf8;
     }
 
     .card {
-      margin: 50px auto;
-      padding: 30px;
-      width: 300px;
+      margin: 40px auto;
+      padding: 20px;
       background: #1e293b;
-      border-radius: 15px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      border-radius: 12px;
+      width: 250px;
     }
 
     .valor {
-      font-size: 50px;
-      font-weight: bold;
-      color: #22c55e;
-    }
-
-    .alerta {
-      color: red !important;
-    }
-
-    .barra {
-      margin-top: 20px;
-      height: 20px;
-      width: 100%;
-      background: #334155;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .progreso {
-      height: 100%;
-      width: 0%;
-      background: #22c55e;
-      transition: 0.5s;
+      font-size: 40px;
+      margin-top: 10px;
     }
   </style>
+
 </head>
 
 <body>
 
-<h1>Sensor de Distancia</h1>
+  <h1>Distancia del Sensor</h1>
 
-<div class="card">
-  <div id="valor" class="valor">-- cm</div>
-
-  <div class="barra">
-    <div id="barra" class="progreso"></div>
+  <div class="card">
+    <p>Distancia actual:</p>
+    <div id="distancia" class="valor">-- cm</div>
   </div>
-</div>
 
-<script>
-const TOKEN = "43aae551-90e8-495c-b56b-8725fbf3a80f"; // 
-const VARIABLE = "distancia"; // 
-  
-async function obtenerDatos() {
-  try {
-    const res = await fetch(`https://api.tago.io/data?variable=${VARIABLE}&qty=1`, {
-      headers: {
-        "Device-Token": TOKEN
-      }
-    });
+  <script>
+    const TOKEN = "43aae551-90e8-495c-b56b-8725fbf3a80f"; //  PON AQUÍ TU TOKEN
 
-    const data = await res.json();
+    async function obtenerDatos() {
+      try {
+        const response = await fetch("https://api.tago.io/data?variable=distancia&query=last_value", {
+          headers: {
+            "Device-Token": TOKEN
+          }
+        });
 
-    if (data.result.length > 0) {
-      const valor = data.result[0].value;
+        const data = await response.json();
 
-      // Mostrar número
-      const valorHTML = document.getElementById("valor");
-      valorHTML.innerText = valor + " cm";
+        if (data.result.length > 0) {
+          document.getElementById("distancia").innerText =
+            data.result[0].value + " cm";
+        }
 
-      // Barra (0 a 100 cm)
-      const porcentaje = Math.min((valor / 100) * 100, 100);
-      document.getElementById("barra").style.width = porcentaje + "%";
-
-      // Alerta visual
-      if (valor < 10) {
-        valorHTML.classList.add("alerta");
-        document.getElementById("barra").style.background = "red";
-      } else {
-        valorHTML.classList.remove("alerta");
-        document.getElementById("barra").style.background = "#22c55e";
+      } catch (error) {
+        console.error("Error:", error);
       }
     }
 
-  } catch (error) {
-    console.log("Error:", error);
-  }
-}
-
-// actualizar cada 2 segundos
-setInterval(obtenerDatos, 2000);
-
-</script>
+    setInterval(obtenerDatos, 3000);
+    obtenerDatos();
+  </script>
 
 </body>
 </html>
