@@ -20,12 +20,15 @@ void setup() {
   tft.setTextColor(ILI9341_BLACK);
   tft.setTextSize(2);
 
-  tft.setCursor(20, 30);
+  tft.setCursor(80, 30);
   tft.println("MSG");
 
   tft.setCursor(20, 60);
   tft.println("JOSUE MERCHAN");
 
+  tft.setCursor(20, 90);
+  tft.println("JONNATHAN CARABAJO");
+ 
   // Círculos
   tft.fillCircle(60, 180, 20, ILI9341_RED);
   tft.fillCircle(120, 180, 20, ILI9341_GREEN);
