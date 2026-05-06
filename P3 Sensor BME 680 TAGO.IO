@@ -5,11 +5,11 @@
 #include <Adafruit_BME680.h>
 
 // WiFi
-const char* ssid = "TU_WIFI";
-const char* password = "TU_PASSWORD";
+const char* ssid = "JOU2022";
+const char* password = "merchan2022";
 
 // Token de TagoIO
-const char* token = "TU_DEVICE_TOKEN";
+const char* token = "43aae551-90e8-495c-b56b-8725fbf3a80f";
 
 Adafruit_BME680 bme; // I2C
 
