@@ -1,0 +1,116 @@
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <TinyGPS++.h>
+
+TinyGPSPlus gps;
+HardwareSerial gpsSerial(2);
+
+// ===== WIFI =====
+const char* ssid = "TU_WIFI";
+const char* password = "TU_PASSWORD";
+
+// ===== TAGOIO =====
+const char* token = "TU_TOKEN_TAGO";
+
+// RX=16 TX=17
+#define RXD2 16
+#define TXD2 17
+
+void sendToTago(String variable, String value) {
+
+  if (WiFi.status() == WL_CONNECTED) {
+
+    HTTPClient http;
+
+    http.begin("https://api.tago.io/data");
+
+    http.addHeader("Content-Type", "application/json");
+    http.addHeader("Device-Token", token);
+
+    String json = "[{\"variable\":\"" + variable +
+                  "\",\"value\":\"" + value + "\"}]";
+
+    int httpResponseCode = http.POST(json);
+
+    Serial.print(variable);
+    Serial.print(" enviado: ");
+    Serial.println(httpResponseCode);
+
+    http.end();
+  }
+}
+
+void setup() {
+
+  Serial.begin(115200);
+
+  gpsSerial.begin(9600, SERIAL_8N1, RXD2, TXD2);
+
+  // WIFI
+  WiFi.begin(ssid, password);
+
+  Serial.print("Conectando WiFi");
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("\nWiFi conectado");
+}
+
+void loop() {
+
+  while (gpsSerial.available()) {
+
+    gps.encode(gpsSerial.read());
+
+    if (gps.location.isUpdated()) {
+
+      float lat = gps.location.lat();
+      float lng = gps.location.lng();
+
+      float speed = gps.speed.kmph();
+
+      float altitude = gps.altitude.meters();
+
+      int satellites = gps.satellites.value();
+
+      // ===== GOOGLE MAPS LINK =====
+      String mapsLink =
+        "https://maps.google.com/?q=" +
+        String(lat, 6) + "," +
+        String(lng, 6);
+
+      // ===== SERIAL =====
+      Serial.println("==============");
+
+      Serial.print("Latitud: ");
+      Serial.println(lat, 6);
+
+      Serial.print("Longitud: ");
+      Serial.println(lng, 6);
+
+      Serial.print("Velocidad: ");
+      Serial.println(speed);
+
+      Serial.print("Altitud: ");
+      Serial.println(altitude);
+
+      Serial.print("Satelites: ");
+      Serial.println(satellites);
+
+      Serial.println("Google Maps:");
+      Serial.println(mapsLink);
+
+      // ===== ENVIAR A TAGO =====
+      sendToTago("latitud", String(lat, 6));
+      sendToTago("longitud", String(lng, 6));
+      sendToTago("velocidad", String(speed));
+      sendToTago("altitud", String(altitude));
+      sendToTago("satelites", String(satellites));
+
+      delay(5000);
+    }
+  }
+}
